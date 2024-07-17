@@ -1,0 +1,47 @@
+<!-- chat.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chat Room</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function(){
+            var roomName = "{{ room_name }}";
+            var chatSocket = new WebSocket(
+                'ws://' + window.location.host + '/ws/chat/' + roomName + '/'
+            );
+
+            chatSocket.onmessage = function(e) {
+                var data = JSON.parse(e.data);
+                // Handle incoming messages
+                console.log(data);
+            };
+
+            // Example send message function
+            function sendMessage() {
+                var messageInput = $('#message-input');
+                var message = messageInput.val();
+                chatSocket.send(JSON.stringify({
+                    'message': message
+                }));
+                messageInput.val('').focus();
+            }
+
+            $('#send-button').click(function() {
+                sendMessage();
+            });
+
+            // Example receive message function
+            function receiveMessage(message) {
+                // Display message on UI
+                console.log('Received message:', message);
+            }
+        });
+    </script>
+</head>
+<body>
+    <div id="chat-log"></div>
+    <input type="text" id="message-input">
+    <button id="send-button">Send</button>
+</body>
+</html>
