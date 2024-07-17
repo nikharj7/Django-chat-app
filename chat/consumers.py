@@ -87,7 +87,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         if friend_request:
             await sync_to_async(friend_request.delete)()
 
-            # Notify both users to open the chat window
+            # notify both users to open the chat window
             await self.channel_layer.group_send(
                 f'user_{self.user.id}',
                 {
@@ -103,7 +103,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 }
             )
 
-            # Send response to the sender for redirection
+            # send response to the sender for redirection
             await self.send(text_data=json.dumps({
                 'action': 'request_accepted',
                 'user_id': user_id
@@ -162,7 +162,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         }))
 
     async def exit_chat(self):
-        # Notify both users to exit chat
+        # notify both users to exit chat
         await self.channel_layer.group_send(
             self.room_name,
             {
@@ -172,9 +172,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
         )
 
     async def chat_closed(self, event):
-        # Send message to close chat for the current user
+        # send message to close chat for the current user
         await self.send(text_data=json.dumps({
             'action': 'chat_closed'
         }))
-        # Close WebSocket connection
+        # close WebSocket connection
         await self.close()

@@ -27,13 +27,13 @@ def home(request):
 
 @custom_login_required
 def chat(request, user_id):
-    # Retrieve the other user based on user_id
+    # retrieve the other user based on user_id
     other_user = get_object_or_404(User, id=user_id)
     
-    # Generate a random unique ID for the chat room
+    # generate a random unique ID for the chat room
     room_id = ''.join(random.choices(string.ascii_lowercase + string.digits, k=10))
     
-    # Query chat messages between current user and the other user
+    # query chat messages between current user and the other user
     messages = ChatMessage.objects.filter(
         sender__in=[request.user, other_user],
         recipient__in=[request.user, other_user]
@@ -42,7 +42,7 @@ def chat(request, user_id):
     context = {
         'other_user': other_user,
         'messages': messages,
-        'room_id': room_id  # Pass room_id to the template
+        'room_id': room_id  
     }
     
     return render(request, 'chat.html', context)

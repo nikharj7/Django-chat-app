@@ -66,21 +66,21 @@ $(document).ready(function() {
         } else if (data.action === 'chat_closed') {
             console.log('Chat closed by the other user.');
             socket.close();
-            // Redirect to home page
+           
             window.location.href = '/';
         }
     };
 
     $('#chat-form').submit(function(e) {
         e.preventDefault();
-        var message = $('#chat-message').val().trim(); // Trim whitespace from message
-        if (message === '') return; // Check if message is empty
+        var message = $('#chat-message').val().trim(); 
+        if (message === '') return; 
         socket.send(JSON.stringify({
             'action': 'send_message',
             'message': message,
-            'recipient_id': {{ other_user.id }} // Ensure other_user.id is correctly rendered
+            'recipient_id': {{ other_user.id }} 
         }));
-        $('#chat-message').val(''); // Clear input field after sending
+        $('#chat-message').val(''); 
     });
 
     $('#exit-chat-btn').click(function() {
