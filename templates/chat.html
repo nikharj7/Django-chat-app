@@ -1,47 +1,96 @@
 <!-- chat.html -->
+
 <!DOCTYPE html>
-<html>
+{% load static %}
+<html lang="en">
 <head>
-    <title>Chat Room</title>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
-        $(document).ready(function(){
-            var roomName = "{{ room_name }}";
-            var chatSocket = new WebSocket(
-                'ws://' + window.location.host + '/ws/chat/' + roomName + '/'
-            );
-
-            chatSocket.onmessage = function(e) {
-                var data = JSON.parse(e.data);
-                // Handle incoming messages
-                console.log(data);
-            };
-
-            // Example send message function
-            function sendMessage() {
-                var messageInput = $('#message-input');
-                var message = messageInput.val();
-                chatSocket.send(JSON.stringify({
-                    'message': message
-                }));
-                messageInput.val('').focus();
-            }
-
-            $('#send-button').click(function() {
-                sendMessage();
-            });
-
-            // Example receive message function
-            function receiveMessage(message) {
-                // Display message on UI
-                console.log('Received message:', message);
-            }
-        });
-    </script>
+    
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chat with {{ other_user.username }}</title>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet" />
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <style>
+    
+    .container:before {
+      background-image: none;
+    }
+  </style>
 </head>
 <body>
-    <div id="chat-log"></div>
-    <input type="text" id="message-input">
-    <button id="send-button">Send</button>
+  <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand" href="#">Logo</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+      aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item">
+          <a class="nav-link nav-link-custom" href="{% url 'logout' %}">Logout</a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+  <div class="container mt-5">
+    <h1>Chat with {{ other_user.username }}</h1>
+    <div id="chat-box">
+      {% for message in messages %}
+      <div class="message">
+        <strong>{{ message.sender.username }}:</strong> {{ message.message }}
+      </div>
+      {% endfor %}
+    </div>
+    <form id="chat-form">
+      <input type="text" id="chat-message" placeholder="Type a message..." class="form-control" />
+      <button type="submit" class="btn btn-primary mt-2" style="width: 100%;">Send</button>
+    </form>
+    <button id="exit-chat-btn" class="btn btn-danger mt-3" style="width: 100%;">Exit Chat</button>
+  </div>
+  <script>
+$(document).ready(function() {
+    var ws_scheme = window.location.protocol === "https:" ? "wss" : "ws";
+    var ws_path = ws_scheme + '://' + window.location.host + '/ws/chat/';
+    var socket = new WebSocket(ws_path);
+
+    socket.onopen = function() {
+        console.log('WebSocket connection established.');
+    };
+
+    socket.onmessage = function(e) {
+        var data = JSON.parse(e.data);
+        if (data.action === 'chat_message') {
+            var message = '<div class="message"><strong>' + data.sender + ':</strong> ' + data.message + '</div>';
+            $('#chat-box').append(message);
+        } else if (data.action === 'chat_closed') {
+            console.log('Chat closed by the other user.');
+            socket.close();
+            // Redirect to home page
+            window.location.href = '/';
+        }
+    };
+
+    $('#chat-form').submit(function(e) {
+        e.preventDefault();
+        var message = $('#chat-message').val().trim(); // Trim whitespace from message
+        if (message === '') return; // Check if message is empty
+        socket.send(JSON.stringify({
+            'action': 'send_message',
+            'message': message,
+            'recipient_id': {{ other_user.id }} // Ensure other_user.id is correctly rendered
+        }));
+        $('#chat-message').val(''); // Clear input field after sending
+    });
+
+    $('#exit-chat-btn').click(function() {
+        socket.send(JSON.stringify({
+            'action': 'exit_chat'
+        }));
+    });
+});
+</script>
+
+   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>
